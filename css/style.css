@@ -34,12 +34,12 @@ a {
 
 }
 
-.row {
+.tablero__row {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
 }
 
-.row * {
+.tablero__row * {
     height: 73px;
     border: 5px solid rgba(255, 255, 255, 0);
     font-size: 4rem;
@@ -50,19 +50,12 @@ a {
     text-shadow: 5px 5px 8px rgba(0, 0, 0, 0.524);
 }
 
-.tablero .row:nth-child(odd) div:nth-child(odd) {
+
+.tablero__casilla {
     background-color: rgb(200, 199, 199);
 }
 
-.tablero .row:nth-child(even) div:nth-child(even) {
-    background-color: rgb(200, 199, 199);
-}
-
-.tablero .row:nth-child(odd) div:nth-child(even) {
-    background-color: rgb(85, 142, 160);
-}
-
-.tablero .row:nth-child(even) div:nth-child(odd) {
+.tablero__casilla--dark {
     background-color: rgb(85, 142, 160);
 }
 
@@ -76,4 +69,15 @@ a {
 
 .seleccionada {
     border: 5px solid rgb(128, 255, 0);
+}
+
+.posibleDestino {
+    border: 5px solid rgb(217, 162, 50);
+
+}
+
+.tablero__casillaInterior {
+    width: 100%;
+    height: 100%;
+    color: rgb(217, 162, 50);
 }
