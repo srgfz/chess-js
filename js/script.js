@@ -118,7 +118,6 @@ movimientoPeon = (piezaEnemiga, posicionBase, movimientoFrontal, casillasPosible
         if (casillaComprobar.textContent === "") {
             casillasPosiblesVacias.push(casillaComprobar)
             if (posicionPiezaSeleccionada[0] === posicionBase && casillas[posicionPiezaSeleccionada[0] + movimientoFrontal * 2][posicionPiezaSeleccionada[1]].textContent === "") {//Si el peón está en la posición de inicio y la siguiente también está vacía puede avanzar 2
-                console.log(casillaComprobar.nextElementSibling)
                 casillasPosiblesVacias.push(casillas[posicionPiezaSeleccionada[0] + movimientoFrontal * 2][posicionPiezaSeleccionada[1]])
             }
         }
@@ -136,7 +135,6 @@ movimientoLineal = (piezaEnemiga, movimientoFrontal = 0, movimientoLateral = 0, 
     posicionDisponible = true
     while (posicionDisponible && ((posicionPiezaSeleccionada[0] + movimientoFrontal <= 7) && (posicionPiezaSeleccionada[0] + movimientoFrontal >= 0) && (posicionPiezaSeleccionada[1] + movimientoLateral <= 7) && (posicionPiezaSeleccionada[1] + movimientoLateral >= 0))) {//Mientras no encuentre una casilla ocupada y la casilla exista en el tablero
         casillaComprobar = casillas[posicionPiezaSeleccionada[0] + movimientoFrontal][posicionPiezaSeleccionada[1] + movimientoLateral]
-
         if (casillaComprobar.textContent === "") {//Si la posición está vacía
             casillasPosiblesVacias.push(casillaComprobar)
             //******llamar aquí a la función del peon: si está en la posición base comprobar la siguiente */
@@ -161,14 +159,23 @@ movimientoLineal = (piezaEnemiga, movimientoFrontal = 0, movimientoLateral = 0, 
     marcarPosicionesPosibles(casillasPosiblesVacias, casillasPosiblesEnemigas)
 }
 
+movimientoCaballo = (piezaEnemiga, desplazamientoFrontal, desplazamientoLateral, casillasPosiblesVacias = [], casillasPosiblesEnemigas = []) => {
+    if ((posicionPiezaSeleccionada[0] + desplazamientoFrontal <= 7) && (posicionPiezaSeleccionada[0] + desplazamientoFrontal >= 0) && (posicionPiezaSeleccionada[1] + desplazamientoLateral <= 7) && (posicionPiezaSeleccionada[1] + desplazamientoLateral >= 0)) {
+        casillaComprobar = casillas[posicionPiezaSeleccionada[0] + desplazamientoFrontal][posicionPiezaSeleccionada[1] + desplazamientoLateral]
+        if (casillaComprobar.textContent === "") {//Si la casilla está vacía
+            casillasPosiblesVacias.push(casillaComprobar)
+        } else if (casillaComprobar.classList.contains(piezaEnemiga)) {//Si la casilla tiene una pieza enemiga
+            casillasPosiblesEnemigas.push(casillaComprobar)
+        }
+        marcarPosicionesPosibles(casillasPosiblesVacias, casillasPosiblesEnemigas)
+    }
+    marcarPosicionesPosibles(casillasPosiblesVacias, casillasPosiblesEnemigas)
+}
+
 controladorCasillasPosibles = (pieza) => {
     casillasPosiblesVacias = []
     casillasPosiblesEnemigas = []
-    if (turnoBlancas) {
-        piezaEnemiga = "piezaNegra"
-    } else {
-        piezaEnemiga = "piezaBlanca"
-    }
+    piezaEnemiga = turnoBlancas ? "piezaNegra" : "piezaBlanca" //condicional ternario para qué pieza es la enemiga en cada turno
     posicionPiezaSeleccionada = posicionPieza(pieza)
     if (pieza.textContent === pawn) {//Peón
         console.log("peón")
@@ -189,6 +196,14 @@ controladorCasillasPosibles = (pieza) => {
         movimientoLineal(piezaEnemiga, 0, -1)
     } else if (pieza.textContent === knight) {//Caballo
         console.log("caballo")
+        movimientoCaballo(piezaEnemiga, 2, 1)
+        movimientoCaballo(piezaEnemiga, 2, -1)
+        movimientoCaballo(piezaEnemiga, -2, 1)
+        movimientoCaballo(piezaEnemiga, -2, -1)
+        movimientoCaballo(piezaEnemiga, 1, 2)
+        movimientoCaballo(piezaEnemiga, 1, -2)
+        movimientoCaballo(piezaEnemiga, -1, 2)
+        movimientoCaballo(piezaEnemiga, -1, -2)
     } else if (pieza.textContent === bishop) {//Alfil
         //Movimientos diagonales
         movimientoLineal(piezaEnemiga, 1, 1)
