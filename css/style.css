@@ -68,16 +68,17 @@ a {
 }
 
 .seleccionada {
-    border: 5px solid rgb(128, 255, 0);
+
+    border-image: linear-gradient(to bottom, #63f4b8c1 0%, #0586e1d2 100%) 1;
 }
 
-.posibleDestino {
-    border: 5px solid rgb(217, 162, 50);
-
+.posibleDestinoVacio {
+    color: rgba(128, 128, 128, 0.361);
+    -webkit-text-stroke: 1px #16161681;
+    text-shadow: none;
+    font-size: 2rem;
 }
 
-.tablero__casillaInterior {
-    width: 100%;
-    height: 100%;
-    color: rgb(217, 162, 50);
+.posibleDestinoRival {
+    border-image: linear-gradient(to bottom, #f0b94ce3 0%, #bf1919cc 100%) 1;
 }
