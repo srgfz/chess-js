@@ -83,6 +83,6 @@ a {
     border-image: linear-gradient(to bottom, #f0b94ce3 0%, #bf1919cc 100%) 1;
 }
 
-.futuroDestinoPosible {
-    border: 5px solid rgba(255, 255, 255, 0);
+.error {
+    background-color: rgba(160, 7, 7, 0.682);
 }
