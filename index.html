@@ -8,34 +8,24 @@
     <title>Ajedrez</title>
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="#">
-    <link rel="shortcut icon" href="#" type="image/x-icon">
+    <link rel="shortcut icon" href="./assets/images/logo.png" type="image/x-icon">
 </head>
 
 
 <body>
     <div class="container">
-        <!--********** Comienzo del header **********-->
-        <header class="header">
-
-        </header>
-        <!--********** Fin del header **********-->
-        <!--********** Inicio del nav **********-->
-        <nav class="nav">
-
-        </nav>
-        <!--********** Fin del nav **********-->
         <!--********** Inicio del main **********-->
         <main class="main">
             <div class="tablero" id="tablero">
                 <div class="tablero__row">
-                    <div class="tablero__casilla"></div>
+                    <div class="tablero__casilla enroque"></div>
                     <div class="tablero__casilla tablero__casilla--dark"></div>
                     <div class="tablero__casilla"></div>
                     <div class="tablero__casilla tablero__casilla--dark"></div>
                     <div class="tablero__casilla"></div>
                     <div class="tablero__casilla tablero__casilla--dark"></div>
                     <div class="tablero__casilla"></div>
-                    <div class="tablero__casilla tablero__casilla--dark"></div>
+                    <div class="tablero__casilla tablero__casilla--dark enroque"></div>
                 </div>
                 <div class="tablero__row">
                     <div class="tablero__casilla tablero__casilla--dark"></div>
@@ -98,23 +88,27 @@
                     <div class="tablero__casilla tablero__casilla--dark"></div>
                 </div>
                 <div class="tablero__row">
-                    <div class="tablero__casilla tablero__casilla--dark"></div>
+                    <div class="tablero__casilla tablero__casilla--dark enroque"></div>
                     <div class="tablero__casilla"></div>
                     <div class="tablero__casilla tablero__casilla--dark"></div>
                     <div class="tablero__casilla"></div>
                     <div class="tablero__casilla tablero__casilla--dark"></div>
                     <div class="tablero__casilla"></div>
                     <div class="tablero__casilla tablero__casilla--dark"></div>
-                    <div class="tablero__casilla"></div>
+                    <div class="tablero__casilla enroque"></div>
                 </div>
+            </div>
+            <div class="pantallaGameOver displayNone" id="pantallaGameOver">
+                <div class="gameOver" id="gameOver">
+                    <div class="gameOver__btnCerrar" id="gameOver__btnCerrar">&#128473;</div>
+                    <p class="gameOver__Ganador"></p>
+                    <button class="gameOver__btnPlayAgain" id="gameOver__btnPlayAgain">
+                        &#128257; Otra Partida</button>
+                </div>
+
             </div>
         </main>
         <!--********** Fin del main **********-->
-        <!--********** Comienzo del footer **********-->
-        <footer class="footer">
-
-        </footer>
-        <!--********** Fin del footer **********-->
 
     </div>
 

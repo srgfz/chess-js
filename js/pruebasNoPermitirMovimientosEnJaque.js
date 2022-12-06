@@ -8,10 +8,6 @@ const king = "\u{265A}"
 //Array con las piezas: contiene un array de las blancas y otro de las negras
 const piezas = [rook, knight, bishop, queen, king, bishop, knight, rook, pawn]
 //*Identifico los elementos que voy a utilizar
-const pantallaGameOver = document.querySelector("#pantallaGameOver")
-const gameOver__btnPlayAgain = document.querySelector("#gameOver__btnPlayAgain")
-const gameOver__btnCerrar = document.querySelector("#gameOver__btnCerrar")
-const gameOver = document.querySelector("#gameOver")
 const tablero = document.querySelector("#tablero")
 const casillas = Array.from(document.querySelectorAll(".tablero__row"))
 //Casillas será un array de arrays: cada fila tendrá su propio array de sus casillas
@@ -27,6 +23,7 @@ let jaque = false//Indicará si el rey está en jaque
 let jaqueMate = false//Indicará el final de la partida
 let piezaSeleccionada
 let posicionPiezaSeleccionada
+let posicionComprobacionMovimientoRey
 
 const cargarPiezas = () => {
     let primeraFila = tablero.firstElementChild
@@ -115,74 +112,203 @@ const desmarcarPosicionesPosiblesRey = (casillasEnJaque, casillasEnJaqueTrasCome
     })
 }
 
-const cambiarTurno = () => {
-    if (turnoBlancas) {
-        turnoBlancas = false
-        piezaEnemiga = "piezaBlanca"
-    } else {
-        turnoBlancas = true
-        piezaEnemiga = "piezaNegra"
-    }
-}
-
-const consecuenciasMovimientos = (destino, posicionDestino, casillaDestino, casillaOrigen) => {
-    if (destino.textContent === king) {//Si hay jaque mate el juego acaba
-        jaqueMate = true
-        mostrarOcultarGameOver()
-    }
-    if (casillaOrigen.textContent === pawn && (posicionDestino[0] === 0 || posicionDestino[0] === 7)) {//Si el movimiento es de un peón llegando a la última fila, se convierte en reina
-        casillaDestino.textContent = queen
-    } else {//Para todas las demás opciones pongo la pieza en el destino
-        casillaDestino.textContent = casillaOrigen.textContent
-    }
-    casillaOrigen.textContent = ""
-}
-
 const moverPieza = (destino) => {
-    encontrarCasillaRey().classList.remove("jaqueAlRey")
     posicionDestino = posicionPieza(destino)
     casillaDestino = casillas[posicionDestino[0]][posicionDestino[1]]
     casillaOrigen = casillas[posicionPiezaSeleccionada[0]][posicionPiezaSeleccionada[1]]
-    consecuenciasMovimientos(destino, posicionDestino, casillaDestino, casillaOrigen)
+    //Pongo la pieza en su lugar de destino y sus clases
+    casillaDestino.textContent = casillaOrigen.textContent
     //Elmino la pieza de su origen
-    //Añado la clase al destino y la elimino del origen
+    casillaOrigen.textContent = ""
+    //Añado la clase al destino y la elimino del origen y cambio el turno
     if (turnoBlancas) {
         casillaDestino.classList.remove("piezaNegra")
         casillaDestino.classList.add("piezaBlanca")
         casillaOrigen.classList.remove("piezaBlanca")
+        turnoBlancas = false
+        piezaEnemiga = "piezaBlanca"
     } else {
         casillaDestino.classList.remove("piezaBlanca")
         casillaDestino.classList.add("piezaNegra")
         casillaOrigen.classList.remove("piezaNegra")
+        turnoBlancas = true
+        piezaEnemiga = "piezaNegra"
     }
     seleccionarPieza()//Reseteo las clases de las casillas
-    cambiarTurno()//Cambio el turno
-    if (comprobarJaque()) {//Si no hay jaque mate compruebo si hay jaque al rey y si lo hay marco la casilla del rey
-        encontrarCasillaRey().classList.add("jaqueAlRey")
-    } else {
-        casillaOrigen.classList.remove("jaqueAlRey")
-        encontrarCasillaRey().classList.remove("jaqueAlRey")
-    }
-}
-
-const mostrarOcultarGameOver = () => {
-    let ganador = turnoBlancas ? "Ganan las Blancas!!" : "Ganan las Negras!!"
-    pantallaGameOver.classList.toggle("displayNone")
-    gameOver.classList.toggle("gameOverAnimation")
-    gameOver.children[1].textContent = ganador
+    comprobarJaque()
 }
 
 const comprobarJaque = () => {
     jaque = false
+    let posicionRey = posicionPieza(encontrarCasillaRey())
+    let piezaProvocaJaque = []
     let piezasEnPeligro = comprobarPiezasEnPeligro()//Guardo todas las piezas que están en peligro
     piezasEnPeligro.map(piezas => {
         if (piezas[0].some((pieza) => pieza.textContent === king)) {//Si una pieza de las que está en peligro es el rey se producirá el jaque
             jaque = true
+            piezaProvocaJaque.push(piezas[1], piezas[2])//Guardo la posición que provoca el jaque [1] y la pieza que es [2]
         }
     })
-    return jaque
+    if (jaque) {
+        movimientosPosiblesAnteJaque(piezaProvocaJaque, posicionRey)
+        comprobarJaqueMate()
+    }
 }
 
+const movimientosPosiblesAnteJaque = (piezaProvocaJaque, posicionRey) => {
+    let piezasDefenderAlRey = []//[posicionObjetivo, casillaQuePuedeDefender, piezaQuePuedeHacerElMovimiento]
+
+    let distanciaFrontal = 0, distanciaLateral = 0
+    comprobarJaqueMate()
+    if (piezaProvocaJaque.length <= 2) {//Si es solo una pieza la que amenaza al rey 
+        //*TODO: tengo la pieza que amenaza al rey, su posción y la posición del rey --> distancia de la pieza que amenaza y el rey
+        //*Tengo que guardar tanto las piezas que se pueden mover como las casillas a las que se pueden mover para proteger al rey
+        piezasDefenderAlRey.push(comerPiezaProvocaJaque(piezaProvocaJaque[0]))//Guardo las posiciones que pueden comerse a la pieza que amenaza al rey
+
+        distanciaFrontal = posicionRey[0] - piezaProvocaJaque[0][0]
+        distanciaLateral = posicionRey[1] - piezaProvocaJaque[0][1]
+        console.log(distanciaFrontal, distanciaLateral)
+        //*Calcular la distancia en movimiento frontal y en el movimiento lateral de la casilla que amenaza (piezaProvocaJaque[0]) con la casilla del rey (posicionRey)
+        if (!((distanciaFrontal ** 2 === 1 && (distanciaLateral === 0 || distanciaLateral ** 2 === 1)) || (distanciaFrontal === 0 && distanciaLateral ** 2 === 1))) {//La pieza que amenaza al rey no está pegada al rey (hay casillas vacias entre ambos)
+            //*TODO: ver si alguna pieza tiene en posibles casillas vacias la ruta del rival
+            //Compruebo si hay piezas que pueden interceptar la ruta entre el rey y la pieza que le hace jaque
+            piezasDefenderAlRey.push(interceptarJaque(piezaProvocaJaque[0], distanciaFrontal, distanciaLateral))
+
+        }
+    }//si hay más de una pieza que provoca amenaza al rey, ninguna pieza podrá defenderlo, solo podrá mover al rey para escapar del jaque
+    movimientosPosiblesRey()
+    //piezasDefenderAlRey.push([king])//Lo paso como array para que todos los elementos tengan la misma estructura
+    console.log(piezasDefenderAlRey)
+}
+
+const comerPiezaProvocaJaque = (posicionAComer) => {
+    let casillasPosiblesDefenderRey = []
+    comprobarPiezasObjetivo().map(casillasObjetivo => {
+        if (casillasObjetivo[0][0] == casillas[posicionAComer[0]][posicionAComer[1]]) {//Si la pieza puede comer la posición que amenaza al rey
+            casillasPosiblesDefenderRey.push(casillasObjetivo)//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+        }
+    })
+    return casillasPosiblesDefenderRey
+}
+
+const interceptarJaque = (posicionPiezaProvocaJaque, distanciaFrontal, distanciaLateral) => {
+    let casillasPosiblesInterceptarJaque = []
+    //Las rutas son teniendo como origen la pieza que provoca el jaque
+    if (distanciaFrontal !== 0 && distanciaLateral !== 0) {//Es una ruta diagonal al rey
+        if (distanciaFrontal > 0 && distanciaLateral > 0) {//From top-left to bottom-right
+            comprobarCasillasVacias().map(datosCasillasVacias => {
+                datosCasillasVacias[0].map(casillasVacias => {
+                    for (let i = 1; i < distanciaFrontal; i++) {
+                        for (let j = 1; j < distanciaLateral; j++) {
+                            if (i === j && (casillasVacias == casillas[posicionPiezaProvocaJaque[0] + i][posicionPiezaProvocaJaque[1] + j])) {
+                                casillasPosiblesInterceptarJaque.push([casillasVacias, datosCasillasVacias[1], datosCasillasVacias[2]])//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+                            }
+                        }
+                    }
+                })
+            })
+        } else if (distanciaFrontal < 0 && distanciaLateral < 0) {//From bottom-right to top-left
+            comprobarCasillasVacias().map(datosCasillasVacias => {
+                datosCasillasVacias[0].map(casillasVacias => {
+                    for (let i = -1; i > distanciaFrontal; i--) {
+                        for (let j = -1; j > distanciaLateral; j--) {
+
+                            if (i === j && (casillasVacias == casillas[posicionPiezaProvocaJaque[0] + i][posicionPiezaProvocaJaque[1] + j])) {
+                                casillasPosiblesInterceptarJaque.push([casillasVacias, datosCasillasVacias[1], datosCasillasVacias[2]])//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+                            }
+                        }
+                    }
+                })
+            })
+        } else if (distanciaFrontal > 0 && distanciaLateral < 0) {//From top-right to bottom-left
+            comprobarCasillasVacias().map(datosCasillasVacias => {
+                datosCasillasVacias[0].map(casillasVacias => {
+                    for (let i = 1; i < distanciaFrontal; i++) {
+                        for (let j = -1; j > distanciaLateral; j--) {
+
+                            if (i + j === 0 && (casillasVacias == casillas[posicionPiezaProvocaJaque[0] + i][posicionPiezaProvocaJaque[1] + j])) {
+                                casillasPosiblesInterceptarJaque.push([casillasVacias, datosCasillasVacias[1], datosCasillasVacias[2]])//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+                            }
+                        }
+                    }
+                })
+            })
+        } else {//From bottom-left to top-right
+            comprobarCasillasVacias().map(datosCasillasVacias => {
+                datosCasillasVacias[0].map(casillasVacias => {
+                    for (let i = 1; i > distanciaFrontal; i--) {
+                        for (let j = -1; j < distanciaLateral; j++) {
+
+                            if (i + j === 0 && (casillasVacias == casillas[posicionPiezaProvocaJaque[0] + i][posicionPiezaProvocaJaque[1] + j])) {
+                                casillasPosiblesInterceptarJaque.push([casillasVacias, datosCasillasVacias[1], datosCasillasVacias[2]])//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+                            }
+                        }
+                    }
+                })
+            })
+        }
+
+    } else if (distanciaLateral === 0) {//Es una ruta frontal al rey
+        if (distanciaFrontal > 0) {//From top to bottom
+            comprobarCasillasVacias().map(datosCasillasVacias => {
+                datosCasillasVacias[0].map(casillasVacias => {
+                    for (let i = 1; i < distanciaFrontal; i++) {
+
+                        if ((casillasVacias == casillas[posicionPiezaProvocaJaque[0] + i][posicionPiezaProvocaJaque[1] + 0])) {
+                            casillasPosiblesInterceptarJaque.push([casillasVacias, datosCasillasVacias[1], datosCasillasVacias[2]])//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+                        }
+                    }
+                })
+            })
+        } else {//From bottom to top
+            comprobarCasillasVacias().map(datosCasillasVacias => {
+                datosCasillasVacias[0].map(casillasVacias => {
+                    for (let i = -1; i > distanciaFrontal; i--) {
+                        if ((casillasVacias == casillas[posicionPiezaProvocaJaque[0] + i][posicionPiezaProvocaJaque[1] + 0])) {
+                            casillasPosiblesInterceptarJaque.push([casillasVacias, datosCasillasVacias[1], datosCasillasVacias[2]])//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+                        }
+                    }
+                })
+            })
+        }
+    } else if (distanciaFrontal === 0) {//Es una ruta lateral al rey
+        if (distanciaLateral > 0) {//From left to right
+            comprobarCasillasVacias().map(datosCasillasVacias => {
+                datosCasillasVacias[0].map(casillasVacias => {
+                    for (let i = 1; i < distanciaLateral; i++) {
+
+                        if ((casillasVacias == casillas[posicionPiezaProvocaJaque[0] + 0][posicionPiezaProvocaJaque[1] + i])) {
+                            casillasPosiblesInterceptarJaque.push([casillasVacias, datosCasillasVacias[1], datosCasillasVacias[2]])//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+                        }
+                    }
+                })
+            })
+
+        } else {//From right to left
+            comprobarCasillasVacias().map(datosCasillasVacias => {
+                datosCasillasVacias[0].map(casillasVacias => {
+                    for (let i = -1; i > distanciaLateral; i--) {
+                        if ((casillasVacias == casillas[posicionPiezaProvocaJaque[0] + 0][posicionPiezaProvocaJaque[1] + i])) {
+                            casillasPosiblesInterceptarJaque.push([casillasVacias, datosCasillasVacias[1], datosCasillasVacias[2]])//En [0] guardo la posición que me puedo comer y en [1] la casilla de la pieza que puede hacer el movimiento
+                        }
+                    }
+                })
+            })
+        }
+
+    }
+    return casillasPosiblesInterceptarJaque
+
+}
+
+const comprobarJaqueMate = () => {
+
+}
+
+const error = (casilla) => {
+    casilla.classList.add("error")
+    setTimeout(() => casilla.classList.remove("error"), 500)
+}
 
 
 const comprobarCasillaExiste = (movimientoFrontal = 0, movimientoLateral = 0, posicionOrigen = posicionPiezaSeleccionada) => {
@@ -265,9 +391,28 @@ const movimientoLinealUnitario = (movimientoFrontal, movimientoLateral, posicion
     return [casillasPosiblesVacias, casillasPosiblesEnemigas]
 }
 
+const movimientosPosiblesRey = () => {
+    let movimientosRey = []
+    let todasLasCasillasDelRey = casillasDisponiblesAlRey()[0].concat(casillasDisponiblesAlRey()[1])
+    let casillasProhibidas = comprobarCasillasJaqueAlRey()
+    console.log(todasLasCasillasDelRey)
+    console.log(comprobarCasillasJaqueAlRey())
+
+    todasLasCasillasDelRey.map((movimientoRey, index) => {
+        casillasProhibidas.map(casillasProhibidas => {
+            casillasProhibidas.map(casillaProhibida => {
+                if (movimientoRey[0] !== casillaProhibida) {
+                    movimientosRey.push(movimientoRey[0])
+                }
+            })
+        })
+    })
 
 
-const comprobarPiezasEnPeligro = () => {//*Guardo qué casillas están en peligro
+    console.log(movimientosRey)
+}
+
+const comprobarPiezasEnPeligro = () => {
     let posicionComprobar
     let piezasEnPeligro = []//Arrays con piezas propias que están en peligro en el siguiente turno (para comprobar si hay jaque al rey) y la posición y pieza que las amenaza
     //Recorro todo el tablero buscando piezas Enemigas para comprobar sus posibles movimientos en el siguiente turno
@@ -325,6 +470,110 @@ const comprobarPiezasEnPeligro = () => {//*Guardo qué casillas están en peligr
     })
     return piezasEnPeligro
 }
+
+
+const comprobarCasillasVacias = () => {
+    let posicionComprobar
+    let casillasVaciasDisponibles = []//Arrays con piezas propias que están en peligro en el siguiente turno (para comprobar si hay jaque al rey) y la posición y pieza que las amenaza
+    //Recorro todo el tablero buscando piezas Enemigas para comprobar sus posibles movimientos en el siguiente turno
+    casillas.forEach(fila => {
+        fila.forEach(casilla => {//Marco todos los posibles movimientos enemigos del proximo turno con la clase ".futuroDestinoPosible"
+            if (casilla.classList.contains(piezaEnemiga === "piezaBlanca" ? "piezaNegra" : "piezaBlanca")) {//Si la casilla tiene una pieza enemiga
+                posicionComprobar = posicionPieza(casilla)//Actualizo la posición de la pieza seleccionada a la pieza de la que voy a ir haciendo la comprobación
+                if (casilla.textContent === pawn) {//comprobación del peon
+                    movimientoFrontal = turnoBlancas ? -1 : 1 //Dirección de los peones según la pieza que se trate: será la inversa a la real ya que estoy comprobando el siguiente turno
+                    posicionBasePeon = turnoBlancas ? 6 : 1
+                    casillasVaciasDisponibles.push([movimientoPeon(posicionBasePeon, movimientoFrontal, posicionComprobar)[0], posicionComprobar, casilla.textContent])
+                } else if (casilla.textContent === knight) {//Posible Jaque del Caballo
+                    for (let i = -2; i <= 2; i++) {
+                        for (let j = 2; j >= -2; j--) {
+                            if (i !== 0 && j !== 0 && i !== j && i + j !== 0) {
+                                casillasVaciasDisponibles.push([movimientoCaballo(i, j, posicionComprobar)[0], posicionComprobar, casilla.textContent])
+                            }
+                        }
+                    }
+                } else if (casilla.textContent === rook) {//Posible Jaque de la torre
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = 1; j >= -1; j--) {
+                            if (!(i === 0 && j === 0) && i !== j && (j === 0 || i === 0)) {
+                                casillasVaciasDisponibles.push([movimientoLineal(i, j, posicionComprobar)[0], posicionComprobar, casilla.textContent])
+                            }
+                        }
+                    }
+                } else if (casilla.textContent === bishop) {//comprobación del alfil
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = 1; j >= -1; j--) {
+                            if (i !== 0 && j !== 0) {
+                                casillasVaciasDisponibles.push([movimientoLineal(i, j, posicionComprobar)[0], posicionComprobar, casilla.textContent])
+                            }
+                        }
+                    }
+                } else if (casilla.textContent === queen) {//comprobación de la reina
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = 1; j >= -1; j--) {
+                            if (!(i === 0 && j === 0)) {
+                                casillasVaciasDisponibles.push([movimientoLineal(i, j, posicionComprobar)[0], posicionComprobar, casilla.textContent])
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    })
+    return casillasVaciasDisponibles
+}
+
+const comprobarPiezasObjetivo = () => {
+    let posicionComprobar
+    let piezasObjetivo = []//Arrays con piezas propias que están en peligro en el siguiente turno (para comprobar si hay jaque al rey) y la posición y pieza que las amenaza
+    //Recorro todo el tablero buscando piezas Enemigas para comprobar sus posibles movimientos en el siguiente turno
+    casillas.forEach(fila => {
+        fila.forEach(casilla => {//Marco todos los posibles movimientos enemigos del proximo turno con la clase ".futuroDestinoPosible"
+            if (casilla.classList.contains(piezaEnemiga === "piezaBlanca" ? "piezaNegra" : "piezaBlanca")) {//Si la casilla tiene una pieza enemiga
+                posicionComprobar = posicionPieza(casilla)//Actualizo la posición de la pieza seleccionada a la pieza de la que voy a ir haciendo la comprobación
+                if (casilla.textContent === pawn) {//comprobación del peon
+                    movimientoFrontal = turnoBlancas ? -1 : 1 //Dirección de los peones según la pieza que se trate: será la inversa a la real ya que estoy comprobando el siguiente turno
+                    piezasObjetivo.push([movimientoLinealUnitario(movimientoFrontal, 1, posicionComprobar)[1], posicionComprobar, casilla.textContent])
+                    piezasObjetivo.push([movimientoLinealUnitario(movimientoFrontal, -1, posicionComprobar)[1], posicionComprobar, casilla.textContent])
+                } else if (casilla.textContent === knight) {//Posible Jaque del Caballo
+                    for (let i = -2; i <= 2; i++) {
+                        for (let j = 2; j >= -2; j--) {
+                            if (i !== 0 && j !== 0 && i !== j && i + j !== 0) {
+                                piezasObjetivo.push([movimientoCaballo(i, j, posicionComprobar)[1], posicionComprobar, casilla.textContent])
+                            }
+                        }
+                    }
+                } else if (casilla.textContent === rook) {//Posible Jaque de la torre
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = 1; j >= -1; j--) {
+                            if (!(i === 0 && j === 0) && i !== j && (j === 0 || i === 0)) {
+                                piezasObjetivo.push([movimientoLineal(i, j, posicionComprobar)[1], posicionComprobar, casilla.textContent])
+                            }
+                        }
+                    }
+                } else if (casilla.textContent === bishop) {//comprobación del alfil
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = 1; j >= -1; j--) {
+                            if (i !== 0 && j !== 0) {
+                                piezasObjetivo.push([movimientoLineal(i, j, posicionComprobar)[1], posicionComprobar, casilla.textContent])
+                            }
+                        }
+                    }
+                } else if (casilla.textContent === queen) {//comprobación de la reina
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = 1; j >= -1; j--) {
+                            if (!(i === 0 && j === 0)) {
+                                piezasObjetivo.push([movimientoLineal(i, j, posicionComprobar)[1], posicionComprobar, casilla.textContent])
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    })
+    return piezasObjetivo
+}
+
 
 
 const comprobarCasillasJaqueAlRey = () => {
@@ -410,57 +659,32 @@ const comprobarCasillasJaqueAlRey = () => {
     return casillasProhibidasAlRey
 }
 
-const casillasPosibles = (i, j, pieza) => {//*Iteración para comprobar las casillas según la pieza
-    casilla = false
-    if (pieza === "reina") {
-        if (!(i === 0 && j === 0)) {
-            casilla = true
-        }
-    } else if ("rey") {
-        if (!(i === 0 && j === 0)) {
-            casilla = true
-        }
-    } else if ("torre") {
-        if (!(i === 0 && j === 0) && i !== j && (j === 0 || i === 0)) {
-            casilla = true
-        }
-    } else if ("alfil") {
-        if (i !== 0 && j !== 0) {
-            casilla = true
-        }
-    }
-    return casilla
 
-}
-
-const movimientosCaballo = (cb, posicionOrigen = posicionPiezaSeleccionada) => {
-    casillasPosiblesVacias = []
-    casillasPosiblesRivales = []
-    for (let i = -2; i <= 2; i++) {
-        for (let j = 2; j >= -2; j--) {
-            if (i !== 0 && j !== 0 && i !== j && i + j !== 0) {
-                casillasPosiblesVacias = movimientoCaballo(i, j, posicionOrigen)[0]
-                casillasPosiblesRivales = movimientoCaballo(i, j, posicionOrigen)[1]
-                cb(casillasPosiblesVacias, casillasPosiblesRivales)
+const casillasDisponiblesAlRey = () => {
+    casillasVacias = []
+    casillasRivales = []
+    casillas.forEach(fila => {
+        fila.forEach(casilla => {//Marco todos los posibles movimientos enemigos del proximo turno con la clase ".futuroDestinoPosible"
+            if (casilla.classList.contains(piezaEnemiga === "piezaBlanca" ? "piezaNegra" : "piezaBlanca")) {//Si la casilla tiene una pieza propia
+                posicionComprobar = posicionPieza(casilla)//Actualizo la posición de la pieza seleccionada a la pieza de la que voy a ir haciendo la comprobación
+                if (casilla.textContent === king) {//comprobación del rey
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = 1; j >= -1; j--) {
+                            if (!(i === 0 && j === 0)) {
+                                casillasVacias.push(movimientoLinealUnitario(i, j, posicionComprobar)[0])
+                                casillasRivales.push(movimientoLinealUnitario(i, j, posicionComprobar)[1])
+                            }
+                        }
+                    }
+                }
             }
-        }
-    }
+        })
+    })
+    return [casillasVacias, casillasRivales]
 }
 
-const comprobacionMovimientos = (pieza, cb, movimiento, posicionOrigen = posicionPiezaSeleccionada) => {
-    let casillasPosiblesVacias = []
-    let casillasPosiblesRivales = []
-    for (let i = -1; i <= 1; i++) {
-        for (let j = 1; j >= -1; j--) {
-            if (casillasPosibles(i, j, pieza)) {
-                casillasPosiblesVacias = movimiento(i, j, posicionOrigen)[0]
-                casillasPosiblesRivales = movimiento(i, j, posicionOrigen)[1]
-                cb(casillasPosiblesVacias, casillasPosiblesRivales)
-            }
-        }
-    }
-}
 
+//*TODO: intentar funciones cb
 
 const controladorCasillasPosibles = (pieza) => {
     posicionPiezaSeleccionada = posicionPieza(pieza)
@@ -532,31 +756,25 @@ const controladorCasillasPosibles = (pieza) => {
     }
 }
 
-const controladorJuego = (ev) => {//*Controlador general del juego
-    button = ev.target
-    if (!jaqueMate) {//Si no se ha producido el jaque mate (la partida no ha terminado)
-        if (piezas.includes(button.textContent)) {//Ha seleccionado alguna pieza
-            piezaSeleccionada = button
-            if (turnoBlancas && button.classList.contains("piezaBlanca")) {//Turno Blancas
-                seleccionarPieza(button)
-            } else if (!turnoBlancas && button.classList.contains("piezaNegra")) {//Turno Negras
-                seleccionarPieza(button)
-            }
-            if (button.classList.contains("seleccionada")) {//Compruebo los movimientos posibles de la casilla seleccionada
-                controladorCasillasPosibles(button)
-            }
+const controladorJuego = (ev) => {
+    casilla = ev.target
+    if (piezas.includes(casilla.textContent)) {//Ha seleccionado alguna pieza
+        piezaSeleccionada = casilla
+        if (turnoBlancas && casilla.classList.contains("piezaBlanca")) {//Turno Blancas
+            seleccionarPieza(casilla)
+        } else if (!turnoBlancas && casilla.classList.contains("piezaNegra")) {//Turno Negras
+            seleccionarPieza(casilla)
         }
-        if (button.classList.contains("posibleDestinoVacio") || button.classList.contains("posibleDestinoRival")) {//Si pulsa sobre la casilla de destino
-            moverPieza(button)
-        }
-    } else {
-        if (button === gameOver__btnCerrar) {
-            mostrarOcultarGameOver()
-        } else if (button === gameOver__btnPlayAgain) {
-            location.reload()
+        if (casilla.classList.contains("seleccionada")) {//Compruebo los movimientos posibles de la casilla seleccionada
+            controladorCasillasPosibles(casilla)
         }
     }
+    if (casilla.classList.contains("posibleDestinoVacio") || casilla.classList.contains("posibleDestinoRival")) {//Si pulsa sobre la casilla de destino
+        moverPieza(casilla)
+    }
+
 }
+
 
 //*LISTENERS
 document.addEventListener("DOMContentLoaded", cargarPiezas)

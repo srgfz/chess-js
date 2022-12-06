@@ -25,13 +25,17 @@ a {
     color: whitesmoke;
 }
 
+.main {
+    position: relative;
+}
+
 .tablero {
     display: gird;
     grid-template-rows: repeat(8, 1fr);
     width: 600px;
     height: 600px;
-    margin: 50px auto;
-
+    padding: 30px 0;
+    margin: 0 auto;
 }
 
 .tablero__row {
@@ -68,8 +72,11 @@ a {
 }
 
 .seleccionada {
-
     border-image: linear-gradient(to bottom, #63f4b8c1 0%, #0586e1d2 100%) 1;
+}
+
+.posibleEnroque {
+    border-image: linear-gradient(to bottom, #84ea74c1 0%, #045725d2 100%) 1;
 }
 
 .posibleDestinoVacio {
@@ -83,6 +90,90 @@ a {
     border-image: linear-gradient(to bottom, #f0b94ce3 0%, #bf1919cc 100%) 1;
 }
 
-.error {
-    background-color: rgba(160, 7, 7, 0.682);
+.gameOver {
+    color: rgb(70, 67, 67);
+    font-variant: small-caps;
+    font-size: 1.6rem;
+    font-weight: bold;
+    width: 400px;
+    height: 300px;
+    border-radius: 15px;
+    background-color: rgba(192, 190, 190, 0.783);
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    margin: 0 auto;
+    transform: translateX(-50%);
+}
+
+
+
+.gameOverAnimation {
+    animation-name: gameOverAnimation;
+    animation-duration: 2s;
+
+}
+
+@keyframes gameOverAnimation {
+    0% {
+        transform: translateX(-50%) scale(0);
+        opacity: 0.35;
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+
+}
+
+
+.pantallaGameOver {
+    position: absolute;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(69, 67, 67, 0.456);
+}
+
+.gameOver__btnCerrar {
+    border: none;
+    font-size: 1.4rem;
+    width: 22px;
+    text-align: center;
+    padding: 2px;
+    margin: 10px 10px auto auto;
+}
+
+.gameOver__btnCerrar:hover {
+    color: rgb(208, 20, 20);
+}
+
+.gameOver__btnPlayAgain {
+    color: whitesmoke;
+    border-radius: 15px;
+    font-size: 1.15rem;
+    font-weight: bold;
+    font-variant: small-caps;
+    border: 3px solid rgb(87, 76, 76);
+    padding: 15px;
+    margin: 35px 15px;
+    background-color: rgba(128, 128, 128, 0.537);
+    box-shadow: 0px 0px 15px rgba(34, 34, 34, 0.623);
+}
+
+.gameOver__btnPlayAgain:hover {
+    color: gray;
+    background-color: rgba(245, 245, 245, 0.715);
+    box-shadow: 0px 0px 15px rgba(230, 223, 223, 0.623);
+
+}
+
+.displayNone {
+    display: none;
+}
+
+.jaqueAlRey {
+    background: rgb(251, 203, 47);
+    background: radial-gradient(circle, rgba(251, 203, 47, 0.799614914325105) 43%, rgba(230, 48, 8, 0.6735644941570378) 80%);
 }
